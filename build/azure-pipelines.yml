@@ -13,8 +13,8 @@ trigger:
 
 variables:
     majorversion: 7
-    minorversion: 0
-    PublisherID: 'AITGmbh'
+    minorversion: 1
+    PublisherID: 'Orschel'
 
 jobs:
 - job: BuildExtensionVariant

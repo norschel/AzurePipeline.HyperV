@@ -20,7 +20,7 @@ The task is primarily tested manually because different Hyper-V hypervisor/host 
 
 # Build and Release Status
 
-Build [![Build Status](https://dev.azure.com/ait-public/GitHub/_apis/build/status/AITGmbH.AIT.BuildSuite.HyperV?branchName=master)](https://dev.azure.com/ait-public/GitHub/_build/latest?definitionId=1?branchName=master)
+[![Build Status](https://dev.azure.com/orschel/GitHub/_apis/build/status/norschel.AzurePipeline.HyperV?branchName=refs%2Fpull%2F1%2Fmerge)](https://dev.azure.com/orschel/GitHub/_build/latest?definitionId=58&branchName=refs%2Fpull%2F1%2Fmerge)
 
 Release Management - Preview [![RM Status - Preview Stage](https://vsrm.dev.azure.com/ait-public/_apis/public/Release/badge/3dcbbf76-dfb1-4f85-8bde-1d140be6ee91/1/1)](https://vsrm.dev.azure.com/ait-public/_apis/public/Release/badge/3dcbbf76-dfb1-4f85-8bde-1d140be6ee91/1/1)
 

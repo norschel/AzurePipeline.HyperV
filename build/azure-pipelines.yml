@@ -12,8 +12,8 @@ trigger:
 - master
 
 variables:
-    majorversion: 7
-    minorversion: 1
+    majorversion: 8
+    minorversion: 0
     PublisherID: 'Orschel'
 
 jobs:
@@ -34,18 +34,6 @@ jobs:
         ExtensionCategory: 'Azure Pipelines'
         VsixFileSuffix: 'azurepipelines'
         DropSuffix: 'AzD'
-      Preview_LegacyTFS:
-        ExtensionName: 'Hyper-V (Legacy-Preview)'
-        ExtensionID: 'hyperv-legacy-preview'
-        ExtensionCategory: 'Build and release'
-        VsixFileSuffix: '_build_and_release_preview'
-        DropSuffix: 'LegacyPreview'
-      Public_LegacyTFS:
-        ExtensionName: 'Hyper-V (Legacy)'
-        ExtensionID: 'hyperv-legacy'
-        ExtensionCategory: 'Build and release'
-        VsixFileSuffix: '_build_and_release'
-        DropSuffix: 'Legacy'
     
   steps:
     - task: colinsalmcorner.colinsalmcorner-buildtasks.replace-tokens-task.ReplaceTokens@1

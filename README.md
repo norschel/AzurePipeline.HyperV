@@ -19,12 +19,18 @@ The subsequent Azure Pipelines release process changes the extension name and ID
 The task is primarily tested manually because different Hyper-V hypervisor/host os versions and the appropriate Hyper-V cmdlets are required. Especially in older versions Hyper-V commandlets are not always backward-compatible (Pre - Windows 10).
 
 # Build and Release Status
+<ToDo Status Badge>
 
-[![Build Status](https://dev.azure.com/orschel/GitHub/_apis/build/status/norschel.AzurePipeline.HyperV?branchName=refs%2Fpull%2F1%2Fmerge)](https://dev.azure.com/orschel/GitHub/_build/latest?definitionId=58&branchName=refs%2Fpull%2F1%2Fmerge)
+Release Management - Preview
+<ToDo Status Badge>
 
-Release Management - Preview [![RM Status - Preview Stage](https://vsrm.dev.azure.com/ait-public/_apis/public/Release/badge/3dcbbf76-dfb1-4f85-8bde-1d140be6ee91/1/1)](https://vsrm.dev.azure.com/ait-public/_apis/public/Release/badge/3dcbbf76-dfb1-4f85-8bde-1d140be6ee91/1/1)
-
-Release Management - Public [![RM Status - Preview Stage](https://vsrm.dev.azure.com/ait-public/_apis/public/Release/badge/3dcbbf76-dfb1-4f85-8bde-1d140be6ee91/1/2)](https://vsrm.dev.azure.com/ait-public/_apis/public/Release/badge/3dcbbf76-dfb1-4f85-8bde-1d140be6ee91/1/2)
+Release Management - Public
+<ToDo Status Badge>
 
 # Contribute
 Contributions to the Hyper-V Azure Pipelines task are welcome. Some ways to contribute are to try things out, file issues and make pull-requests.
+
+# Information about this forked version
+This HyperV Azure DevOps pipeline task is based on AIT.BuildSuite.HyperV repository. 
+In the future (from April 2023), the extension will be maintained under its own publisher (Orschel instead of AIT GmbH).
+AIT will discontinue further maintenance.

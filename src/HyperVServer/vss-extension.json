@@ -1,17 +1,17 @@
 {
   "manifestVersion": 1,
-  "id": "aithyperv",
-  "version": "1.0.0",
+  "id": "HyperV",
+  "version": "8.0.0",
   "name": "Hyper-V",
-  "publisher": "AITGmbh",
-  "public": false,
+  "publisher": "Orschel",
+  "public": true,
   "targets": [{
     "id": "Microsoft.VisualStudio.Services"
   }],
   "description": "Remote control Hyper-V VMs and perform actions like start and stop VM, create or restore a snapshot (without SCVMM)",
   "repository": {
     "type": "git",
-    "uri": "https://github.com/AITGmbH/AIT.BuildSuite.HyperV"
+    "uri": "https://github.com/norschel/AzurePipeline.HyperV"
   },
   "content": {
     "details": {
@@ -23,16 +23,16 @@
   },
   "links": {
     "getstarted": {
-      "uri": "https://github.com/AITGmbH/AIT.BuildSuite.HyperV/wiki"
+      "uri": "https://github.com/norschel/AzurePipeline.HyperV/wiki"
     },
     "support": {
-      "uri": "https://github.com/AITGmbH/AIT.BuildSuite.HyperV/issues"
+      "uri": "https://github.com/norschel/AzurePipeline.HyperV/issues"
     },
     "privacypolicy": {
-      "uri": "https://www.aitgmbh.de/datenschutz"
+      "uri": "https://github.com/norschel/AzurePipeline.HyperV"
     },
     "license": {
-      "uri": "https://github.com/AITGmbH/AIT.BuildSuite.HyperV/blob/master/LICENSE"
+      "uri": "https://github.com/norschel/AzurePipeline.HyperV/blob/master/LICENSE"
     }
   },
   "screenshots": [
@@ -47,7 +47,7 @@
       }
     ],
   "categories": [
-    "__ExtensionCategory__"
+    "Azure Pipelines"
   ],
   "tags": [
     "Deploy task", 
@@ -59,7 +59,8 @@
     "SCVMM",
     "System Center Virtual Machine Manager",
     "Windows Server", 
-    "AIT BuildSuite"
+    "AIT BuildSuite",
+    "Xpirit"	
   ],
   "icons": {
     "default": "extension-icon.png"
@@ -68,7 +69,7 @@
     "path": "HyperVServer"
   }],
   "contributions": [{
-    "id": "92BE4BBF-8AB1-464A-BFC0-840D2A667725",
+    "id": "72BE4BBF-8AB2-564A-BFC0-840D2A667825",
     "type": "ms.vss-distributed-task.task",
     "targets": ["ms.vss-distributed-task.tasks"],
     "properties": {

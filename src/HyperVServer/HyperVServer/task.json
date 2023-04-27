@@ -1,13 +1,13 @@
 {
-  "id": "2317AC39-2411-4668-BE26-97430F8DBADD",
+  "id": "2817AC39-2411-4668-BE26-14530F8DBADD",
   "name": "HyperVServer",
   "friendlyName": "Hyper-V Server",
-  "author": "AIT Gmbh & Co. KG",
+  "author": "Nico Orschel",
   "description": "Remote control Hyper-V VMs and perform actions like start and stop VM, create or restore a snapshot (without SCVMM)",
   "helpMarkDown": "This step supports remote control of Hyper-V VMs and servers (without SCVMM). It supports starting and stopping a VM plus creating, restoring or deleting a VM snapshot.",
   "category": "Deploy",
   "version": {
-    "Major": 0,
+    "Major": 8,
     "Minor": 0,
     "Patch": 0
   },
@@ -87,9 +87,13 @@
     }
   },
   "targets": [
-    {
-      "id": "Microsoft.VisualStudio.Services"
-    }
-  ]
+        {
+            "id": "Microsoft.VisualStudio.Services.Cloud"
+        },
+        {
+            "id": "Microsoft.TeamFoundation.Server",
+            "version": "[18.0,)"
+        }
+    ]
 }
 

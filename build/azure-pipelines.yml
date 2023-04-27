@@ -12,9 +12,9 @@ trigger:
 - master
 
 variables:
-    majorversion: 7
+    majorversion: 8
     minorversion: 0
-    PublisherID: 'AITGmbh'
+    PublisherID: 'Orschel'
 
 jobs:
 - job: BuildExtensionVariant
@@ -24,28 +24,16 @@ jobs:
     matrix: 
       Preview_AzureDevOps:
         ExtensionName: 'Hyper-V (Preview)'
-        ExtensionID: 'aithyperv-preview'
+        ExtensionID: 'hyperv-preview'
         ExtensionCategory: 'Azure Pipelines'
         VsixFileSuffix: 'azurepipelines_preview'
         DropSuffix: 'Preview'
       Public_AzureDevOps:
         ExtensionName: 'Hyper-V'
-        ExtensionID: 'aithyperv'
+        ExtensionID: 'hyperv'
         ExtensionCategory: 'Azure Pipelines'
         VsixFileSuffix: 'azurepipelines'
         DropSuffix: 'AzD'
-      Preview_LegacyTFS:
-        ExtensionName: 'Hyper-V (Legacy-Preview)'
-        ExtensionID: 'aithyperv-legacy-preview'
-        ExtensionCategory: 'Build and release'
-        VsixFileSuffix: '_build_and_release_preview'
-        DropSuffix: 'LegacyPreview'
-      Public_LegacyTFS:
-        ExtensionName: 'Hyper-V (Legacy)'
-        ExtensionID: 'aithyperv-legacy'
-        ExtensionCategory: 'Build and release'
-        VsixFileSuffix: '_build_and_release'
-        DropSuffix: 'Legacy'
     
   steps:
     - task: colinsalmcorner.colinsalmcorner-buildtasks.replace-tokens-task.ReplaceTokens@1
@@ -76,19 +64,18 @@ jobs:
       #      ExcludeRules: 'PSAvoidUsingWriteHost'
       #      Severity: 'Error,Warning'
 
-    - task: UseNode@1
-      displayName: 'Use Node 10.x'
-      inputs:
-        version: 10.x
+    #- task: UseNode@1
+    #  displayName: 'Use Node 10.x'
+    #  inputs:
+    #    version: 10.x
 
-    - task: ms-devlabs.vsts-developer-tools-build-tasks.tfx-installer-build-task.TfxInstaller@3
-      displayName: 'Use Node CLI for Azure DevOps (tfx-cli): 0.8.x'
+    - task: TfxInstaller@4
       inputs:
-        version: 0.8.x
+        version: 'v0.11.x'
         checkLatest: true
 
-    - task: ms-devlabs.vsts-developer-tools-build-tasks.package-extension-build-task.PackageAzureDevOpsExtension@3
-      displayName: 'Package Extension: AIT BuildSuite HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
+    - task: PackageAzureDevOpsExtension@4
+      displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
       inputs:
         rootFolder: src/HyperVServer
         outputPath: '$(build.artifactstagingdirectory)\AIT.BuildSuite.HyperV_$(VsixFileSuffix).vsix'

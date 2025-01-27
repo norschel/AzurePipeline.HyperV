@@ -64,17 +64,18 @@ jobs:
       #      ExcludeRules: 'PSAvoidUsingWriteHost'
       #      Severity: 'Error,Warning'
 
-    #- task: UseNode@1
-    #  displayName: 'Use Node 10.x'
-    #  inputs:
-    #    version: 10.x
-
-    - task: TfxInstaller@4
+    - task: UseNode@1
+      displayName: 'Use Node 20.x'
       inputs:
-        version: 'v0.11.x'
+        version: 20.x
+
+    - task: TfxInstaller@5
+      displayName: 'Use Node CLI for Azure DevOps'
+      inputs:
+        version: '0.x'
         checkLatest: true
 
-    - task: PackageAzureDevOpsExtension@4
+    - task: PackageAzureDevOpsExtension@5
       displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
       inputs:
         rootFolder: src/HyperVServer

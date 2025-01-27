@@ -27,6 +27,7 @@ and [Hyper-V Module](https://technet.microsoft.com/itpro/powershell/windows/hype
 * Changes since 7.0.62: Added additional support for older hyperv cmdlet version 1.1 (only affects old hyper-v versions -> pre Win 2016)
 * Changes since 7.0.66: Fixed loading of older cmdlet versions, added some additional debug outputs (could be enabled with system.debug = true)
 * Changes since 8.0.0: Removed support for old TFS legacy versions, in the future only support for AzD pipelines (2020+) is provided, taking over the maintenance from AIT
+* Changes since 9.0.0: Migrate GH action core script (incl. AzP logging lib) to Az Pipelines task, add SSH support from GH Action action, cross platform support
 
 ### Known limitions
 -------

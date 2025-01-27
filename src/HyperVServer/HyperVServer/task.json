@@ -81,7 +81,7 @@
   ],
   "execution": {
     "PowerShell3": {
-      "target": "$(currentDirectory)\\HyperVServer.ps1",
+      "target": "$(currentDirectory)\\start.ps1",
       "argumentFormat": "",
       "workingDirectory": "$(currentDirectory)"
     }

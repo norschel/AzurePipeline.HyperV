@@ -7,7 +7,7 @@
   "helpMarkDown": "This step supports remote control of Hyper-V VMs and servers (without SCVMM). It supports starting and stopping a VM plus creating, restoring or deleting a VM snapshot.",
   "category": "Deploy",
   "version": {
-    "Major": 8,
+    "Major": 9,
     "Minor": 0,
     "Patch": 0
   },

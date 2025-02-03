@@ -80,10 +80,9 @@
     }
   ],
   "execution": {
-    "PowerShell3": {
-      "target": "$(currentDirectory)\\start.ps1",
-      "argumentFormat": "",
-      "workingDirectory": "$(currentDirectory)"
+    "Node16": {
+      "target": "dist/index.js",
+      "argumentFormat": ""
     }
   },
   "targets": [

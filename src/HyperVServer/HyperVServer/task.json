@@ -11,7 +11,7 @@
     "Minor": 0,
     "Patch": 0
   },
-  "minimumAgentVersion": "2.144.0",
+  "minimumAgentVersion": "3.232.1",
   "demands": [ ],
   "instanceNameFormat": "Hyper-V Server: $(Action) $(VMName) on $(Computername)",
   "inputs": [
@@ -80,7 +80,7 @@
     }
   ],
   "execution": {
-    "Node16": {
+    "Node20_1": {
       "target": "dist/index.js",
       "argumentFormat": ""
     }

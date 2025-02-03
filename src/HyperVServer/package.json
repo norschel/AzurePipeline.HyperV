@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "azure-pipelines-task-lib": "^4.17.3",
-    "ssh2": "^1.16.0"
+    "ssh2": "^1.16.0",
+    "azure-pipelines-tool-lib": "^2.0.0-preview"
   },
   "scripts": {
     "build": "tsc -p ./tsconfig.json && ncc build",

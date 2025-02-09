@@ -81,7 +81,7 @@
   ],
   "execution": {
     "Node20_1": {
-      "target": "dist/index.js",
+      "target": "HyperV.js",
       "argumentFormat": ""
     }
   },

@@ -84,7 +84,7 @@ jobs:
       displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
       inputs:
         rootFolder: src/HyperVServer
-        outputPath: '$(build.artifactstagingdirectory)\AIT.BuildSuite.HyperV_$(VsixFileSuffix).vsix'
+        outputPath: '$(build.artifactstagingdirectory)\Orschel.HyperV_$(majorversion).$(minorversion)_$(VsixFileSuffix).vsix'
         publisherId: '$(PublisherID)'
         extensionVersion: '$(Build.BuildNumber)'
         extensionId: '$(ExtensionID)'

@@ -14,6 +14,15 @@ variables:
     majorversion: 8
     minorversion: 0
     PublisherID: 'Orschel'
+    
+parameters:
+- name: extensionvisibility
+  displayName: Extension Visibility
+  type: string
+  default: private
+  values:
+  - private
+  - public
 
 jobs:
 - job: BuildExtensionVariant
@@ -99,7 +108,7 @@ jobs:
         extensionId: '$(ExtensionID)'
         extensionName: '$(ExtensionName)'
         updateTasksVersion: true
-        extensionVisibility: private
+        extensionVisibility: ${{ parameters.extensionvisibility }}
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact : Extension'

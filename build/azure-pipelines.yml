@@ -6,7 +6,6 @@ resources:
 
 pool:
   vmImage: 'windows-latest'
-  demands: npm
 
 trigger:
 - master
@@ -15,6 +14,15 @@ variables:
     majorversion: 8
     minorversion: 0
     PublisherID: 'Orschel'
+    
+parameters:
+- name: extensionvisibility
+  displayName: Extension Visibility
+  type: string
+  default: private
+  values:
+  - private
+  - public
 
 jobs:
 - job: BuildExtensionVariant
@@ -43,16 +51,26 @@ jobs:
           filePattern: 'vss-extension.json'
 
     - powershell: |
-        mkdir $(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\ps_modules
-        Save-Module -Name VstsTaskSdk -Path $(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\ps_modules
-        $sdk = Get-ChildItem -Path $(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\ps_modules -Recurse -Filter VstsTaskSdk.psm1
+        # Azure DevOps task module needs to be located side-by-side to the core script
+        write-host "Create PS-Modules folder"
+        $scriptFolder = "$(Build.SourcesDirectory)\src\HyperVServer\HyperVServer"
+        $psModulesFolder = "$scriptFolder\ps_modules"
+        mkdir $psModulesFolder
+        write-host "Save VstsTaskSdk module into ps_modules folder"
+        Save-Module -Name VstsTaskSdk -Path $psModulesFolder
+        write-host "Copy VstsTaskSdk module near to the main script"
+        $sdk = Get-ChildItem -Path $psModulesFolder -Recurse -Filter VstsTaskSdk.psm1
+        write-host "Found module:"
+        $sdk
         
         $from =$sdk.Directory.FullName
-        $to = $sdk.Directory.Parent.FullName
-        
+        $to = $scriptFolder
+
+        write-host "Copy module from $from to $to :"
         Get-ChildItem -Path $from | % { 
-          Copy-Item $_.fullname "$to" -Recurse -Force
+          Copy-Item $_.fullname $to -Recurse -Force -verbose
         }
+        ls $to
 
         Remove-Item -Path $from -Recurse -Force
       displayName: 'Add VstsTaskSdk PowerShell SDK'
@@ -79,13 +97,13 @@ jobs:
       displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
       inputs:
         rootFolder: src/HyperVServer
-        outputPath: '$(build.artifactstagingdirectory)\AIT.BuildSuite.HyperV_$(VsixFileSuffix).vsix'
+        outputPath: '$(build.artifactstagingdirectory)\Orschel.HyperV_$(majorversion).$(minorversion)_$(VsixFileSuffix).vsix'
         publisherId: '$(PublisherID)'
         extensionVersion: '$(Build.BuildNumber)'
         extensionId: '$(ExtensionID)'
         extensionName: '$(ExtensionName)'
         updateTasksVersion: true
-        extensionVisibility: private
+        extensionVisibility: ${{ parameters.extensionvisibility }}
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact : Extension'

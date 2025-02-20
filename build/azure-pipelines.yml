@@ -57,7 +57,7 @@ jobs:
         $from =$sdk.Directory.FullName
         $to = $scriptFolder
 
-        write-host "Copy module from $from to $to:"
+        write-host "Copy module from $from to $to :"
         Get-ChildItem -Path $from | % { 
           Copy-Item $_.fullname $to -Recurse -Force -verbose
         }

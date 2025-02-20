@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "azure-pipelines-task-lib": "^4.17.3",
+    "ssh2": "^1.16.0",
+    "azure-pipelines-tool-lib": "^2.0.7"
+  },
+  "scripts": {
+    "build": "tsc -p ./tsconfig.json && ncc build && cp ./dist/index.js ./HyperVServer/HyperV.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "@tsconfig/recommended": "^1.0.8",
+    "@types/node": "^22.12.0",
+    "@types/ssh2": "^1.15.4"
+  }
+}

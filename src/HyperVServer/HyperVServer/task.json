@@ -7,11 +7,11 @@
   "helpMarkDown": "This step supports remote control of Hyper-V VMs and servers (without SCVMM). It supports starting and stopping a VM plus creating, restoring or deleting a VM snapshot.",
   "category": "Deploy",
   "version": {
-    "Major": 8,
+    "Major": 9,
     "Minor": 0,
     "Patch": 0
   },
-  "minimumAgentVersion": "1.95.1",
+  "minimumAgentVersion": "3.232.1",
   "demands": [ ],
   "instanceNameFormat": "Hyper-V Server: $(Action) $(VMName) on $(Computername)",
   "inputs": [
@@ -80,10 +80,9 @@
     }
   ],
   "execution": {
-    "PowerShell3": {
-      "target": "$(currentDirectory)\\HyperVServer.ps1",
-      "argumentFormat": "",
-      "workingDirectory": "$(currentDirectory)"
+    "Node20_1": {
+      "target": "HyperV.js",
+      "argumentFormat": ""
     }
   },
   "targets": [

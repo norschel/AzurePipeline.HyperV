@@ -43,13 +43,19 @@ jobs:
           filePattern: 'vss-extension.json'
 
     - powershell: |
+        write-host "Create PS-Modules folder"
         mkdir $(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\ps_modules
+        write-host "Save VstsTaskSdk module into ps_modules folder"
         Save-Module -Name VstsTaskSdk -Path $(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\ps_modules
+        write-host "Copy VstsTaskSdk module near to the main script"
         $sdk = Get-ChildItem -Path $(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\ps_modules -Recurse -Filter VstsTaskSdk.psm1
+        write-host "Found module:"
+        $sdk
         
         $from =$sdk.Directory.FullName
         $to = $sdk.Directory.Parent.FullName
-        
+
+        write-host "Copy module:"
         Get-ChildItem -Path $from | % { 
           Copy-Item $_.fullname "$to" -Recurse -Force
         }

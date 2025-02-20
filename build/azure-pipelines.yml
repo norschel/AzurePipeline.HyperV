@@ -6,7 +6,6 @@ resources:
 
 pool:
   vmImage: 'windows-latest'
-  demands: npm
 
 trigger:
 - master
@@ -58,10 +57,11 @@ jobs:
         $from =$sdk.Directory.FullName
         $to = $scriptFolder
 
-        write-host "Copy module:"
+        write-host "Copy module from $from to $to:"
         Get-ChildItem -Path $from | % { 
-          Copy-Item $_.fullname "$to" -Recurse -Force
+          Copy-Item $_.fullname $to -Recurse -Force -verbose
         }
+        ls $to
 
         Remove-Item -Path $from -Recurse -Force
       displayName: 'Add VstsTaskSdk PowerShell SDK'

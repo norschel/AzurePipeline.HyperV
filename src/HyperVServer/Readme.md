@@ -14,6 +14,7 @@ and [Hyper-V Module](https://technet.microsoft.com/itpro/powershell/windows/hype
 
 * Add VM name(s) and the host name to start or stop a VM
 * Additionally a snapshot name required to create, restore or delete snapshots
+* Enable SSH mode and provide SSH credentials when running the task from a non-Windows build agent
 
 ## Changelog
 

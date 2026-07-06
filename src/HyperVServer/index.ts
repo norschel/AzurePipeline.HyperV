@@ -1,5 +1,6 @@
+import path from "path";
 import { spawn } from "child_process";
-import { getInput, debug } from "azure-pipelines-task-lib/task";
+import { getInput, debug, setResult, TaskResult } from "azure-pipelines-task-lib/task";
 import { hostname, platform } from "os";
 import { PowerShellSSHClient } from "./PowerShellSshClient";
 
@@ -7,9 +8,8 @@ async function main() {
   // https://stackoverflow.com/questions/8683895/how-do-i-determine-the-current-operating-system-with-node-js
   
   // startGroup("Hyper-V action general information");
-  console.log(`Starting the HyperV action on Hyper-V host ${hostname} using the plattform ${platform()}`);
-  var isSshModeEnabledString = getInput("SSHMode", false);
-  var isSshModeEnabled = getBoolean(isSshModeEnabledString);
+  console.log(`Starting the HyperV action on Hyper-V host ${hostname()} using the platform ${platform()}`);
+  var isSshModeEnabled = getBoolean(getInput("SSHMode", false));
 
   // we check if ssh mode is enabled
   // if it is enabled, we will use ssh to execute the commands on the remote machine
@@ -29,45 +29,44 @@ async function main() {
 }
 
 async function executeInPowerShellRemoteMode() {
-  var isWin = process.platform === "win32";
-
-  if (isWin) {
-    // Executing using powershell shell
-    console.log("Starting executing PowerShell commands.");
-    // https://www.freecodecamp.org/news/node-js-child-processes-everything-you-need-to-know-e69498fe970a/
-    // https://nodejs.org/api/child_process.html
-    // https://2ality.com/2018/05/child-process-streams.html
-    var hyperVCmd = String.prototype.concat(".\\ps\\HyperVServer.ps1");
-    hyperVCmd += String.prototype.concat(createHyperVScriptCommand());
-    // endGroup();
-    const pwshHyperV = spawn(getPwsh(), [hyperVCmd], {
-      stdio: "inherit",
-    });
-
-    await new Promise<void>((resolve) => {
-      pwshHyperV.on("close", (code) => {
-        console.log(`PowerShell process exited with code ${code}`);
-        if (code != 0) {
-          //setFailed(`PowerShell process exited with code ${code}`);
-          // ToDo
-        }
-        resolve();
-      })
-    });
-
-    console.log("### DONE");
+  if (process.platform !== "win32") {
+    throw new Error("Connecting via PowerShell remote protocol is only supported on Windows. Please enable SSH mode.");
   }
-  else {
-    console.error("Connecting via PowerShell remote protocol is only supported on Windows. Please enable SSH mode.");
-  }
+
+  console.log("Starting executing PowerShell commands.");
+  // https://www.freecodecamp.org/news/node-js-child-processes-everything-you-need-to-know-e69498fe970a/
+  // https://nodejs.org/api/child_process.html
+  // https://2ality.com/2018/05/child-process-streams.html
+  const pwshHyperV = spawn(getPwsh(), [
+    "-File",
+    getLocalScriptPath("HyperVServer.ps1"),
+    ...createHyperVScriptArguments(),
+  ], {
+    stdio: "inherit",
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    pwshHyperV.on("error", reject);
+    pwshHyperV.on("close", (code) => {
+      console.log(`PowerShell process exited with code ${code}`);
+      if (code != null && code !== 0) {
+        reject(new Error(`PowerShell process exited with code ${code}`));
+        return;
+      }
+
+      resolve();
+    });
+  });
+
+  console.log("### DONE");
 }
 
-function createHyperVScriptCommand() {
-  var action = getInput("Command", true) || "";
+function createHyperVScriptArguments(): string[] {
+  var action = getInput("Action", false) || getInput("Command", true) || "";
   var vmName = getInput("VMName", true) || "";
-  var computername = getInput("Hostname", true) || "";
+  var computername = getInput("Computername", false) || getInput("Hostname", true) || "";
 
-  var CheckpointName = getInput("CheckpointName", false);
+  var checkpointName = getInput("SnapshotName", false) || getInput("CheckpointName", false);
   var StartVMWaitTimeBasedCheckInterval = getInput(
     "StartVMWaitTimeBasedCheckInterval",
     false );
@@ -80,84 +79,47 @@ function createHyperVScriptCommand() {
     "HyperV_StartVMAppHealthyHeartbeatTimeout",
     false);
   var HyperV_PsModuleVersion = getInput("HyperV_PsModuleVersion", false);
-  
-  var optionalParameters = "";
-  if (!isEmpty(CheckpointName)) {
-    optionalParameters += String.prototype.concat(
-      " ",
-      "-CheckpointName",
-      " ",
-      CheckpointName || ""
-    );
-  }
 
-  if (!isEmpty(StartVMWaitTimeBasedCheckInterval)) {
-    optionalParameters += String.prototype.concat(
-      " ",
-      "-StartVMWaitTimeBasedCheckInterval",
-      " ",
-      StartVMWaitTimeBasedCheckInterval || ""
-    );
-  }
+  const hyperVCmd = [
+    "-Computername", computername,
+    "-Action", action,
+    "-VMName", vmName,
+  ];
 
-  if (!isEmpty(StartVMStatusCheckType)) {
-    optionalParameters += String.prototype.concat(
-      " ",
-      "-StartVMStatusCheckType",
-      " ",
-      StartVMStatusCheckType || ""
-    );
-  }
+  addOptionalScriptArgument(hyperVCmd, "-CheckpointName", checkpointName);
+  addOptionalScriptArgument(hyperVCmd, "-StartVMWaitTimeBasedCheckInterval", StartVMWaitTimeBasedCheckInterval);
+  addOptionalScriptArgument(hyperVCmd, "-StartVMStatusCheckType", StartVMStatusCheckType);
+  addOptionalScriptArgument(hyperVCmd, "-HyperV_StartVMWaitingNumberOfStatusNotifications", HyperV_StartVMWaitingNumberOfStatusNotifications);
+  addOptionalScriptArgument(hyperVCmd, "-HyperV_StartVMAppHealthyHeartbeatTimeout", HyperV_StartVMAppHealthyHeartbeatTimeout);
+  addOptionalScriptArgument(hyperVCmd, "-HyperV_PsModuleVersion", HyperV_PsModuleVersion);
 
-  if (!isEmpty(HyperV_StartVMWaitingNumberOfStatusNotifications)) {
-    optionalParameters += String.prototype.concat(
-      " ",
-      "-HyperV_StartVMWaitingNumberOfStatusNotifications",
-      " ",
-      HyperV_StartVMWaitingNumberOfStatusNotifications || ""
-    );
-  }
-
-  if (!isEmpty(HyperV_StartVMAppHealthyHeartbeatTimeout)) {
-    optionalParameters += String.prototype.concat(
-      " ",
-      "-HyperV_StartVMAppHealthyHeartbeatTimeout",
-      " ",
-      HyperV_StartVMAppHealthyHeartbeatTimeout || ""
-    );
-  }
-
-  if (!isEmpty(HyperV_PsModuleVersion)) {
-    optionalParameters += String.prototype.concat(
-      " ",
-      "-HyperV_PsModuleVersion",
-      " ",
-      HyperV_PsModuleVersion || ""
-    );
-  }
-
-  var hyperVCmd = String.prototype.concat(" ", "-ComputerName", " ", computername || "");
-  hyperVCmd += String.prototype.concat(" ", "-Action", " ", action);
-  hyperVCmd += String.prototype.concat(" ", "-VMName", " ", vmName);
-  hyperVCmd += String.prototype.concat(optionalParameters);
-  debug("### HyperV command script parameter: " + hyperVCmd);
+  debug("### HyperV command script parameter: " + hyperVCmd.join(" "));
   return hyperVCmd;
+}
+
+function addOptionalScriptArgument(scriptArguments: string[], parameterName: string, value: string | undefined | null): void {
+  if (!isEmpty(value)) {
+    scriptArguments.push(parameterName, value!.trim());
+  }
 }
 
 async function executeInSSHMode() {
   var sshPrivatekey = getInput("SSHPrivateKey", false);
-  var sshHost = getInput("SSHHostName", true);
+  var sshHost = getInput("SSHHostName", false) || getInput("Computername", true) || "";
   var sshUsername = getInput("SSHUsername", true);
-  var sshPort = Number.parseInt(getInput("SSHPort", true) || "22");
+  var sshPort = Number.parseInt(getInput("SSHPort", false) || "22", 10);
+  if (Number.isNaN(sshPort)) {
+    throw new Error("SSH port is not a valid number.");
+  }
 
   // we use username and password if private key is not provided (default)
-  var ssh = null;
+  var ssh: PowerShellSSHClient;
   if (isEmpty(sshPrivatekey)) {
     console.log("### Connecting via SSH with username and password");
 
     var sshPassword = getInput("SSHPassword", true);
     if (isEmpty(sshPassword)) {
-      console.error("SSH password is required if no private key is provided.");
+      throw new Error("SSH password is required if no private key is provided.");
     }
 
     ssh = new PowerShellSSHClient({
@@ -174,27 +136,15 @@ async function executeInSSHMode() {
       port: sshPort,
       username: sshUsername,
       privateKey: sshPrivatekey,
-    });
+    }, getPwsh());
   }
 
-  var scriptArguments = createHyperVScriptCommand();
+  var scriptArguments = createHyperVScriptArguments();
   // endGroup();
-  try {
-    var result = await ssh.executeScript('./ps/HyperVServer.ps1', scriptArguments);
-    result = result.trim();
-    debug("### Result: " + result);
-    console.log("### Done");
-  }
-  catch (error) {
-    if (error instanceof Error) {
-      // setFailed(error.message);
-      // ToDo
-    } else {
-      //setFailed("An unknown error occurred. Please check the logs. Error message:" + error);
-      // ToDo
-      throw error;
-    }
-  }
+  var result = await ssh.executeScript(getLocalScriptPath("HyperVServer.ps1"), scriptArguments);
+  result = result.trim();
+  debug("### Result: " + result);
+  console.log("### Done");
 }
 
 //source: https://stackoverflow.com/questions/1812245/what-is-the-best-way-to-test-for-an-empty-string-with-jquery-out-of-the-box
@@ -206,12 +156,14 @@ function isEmpty(value: string | undefined | null): boolean {
   );
 }
 
-function getBoolean(value: any): boolean {
+function getBoolean(value: string | undefined | null): boolean {
+  if (typeof value !== "string") {
+    return false;
+  }
+
   value = value.toLowerCase().trim();
   switch (value) {
-    case true:
     case "true":
-    case 1:
     case "1":
     case "on":
     case "yes":
@@ -222,15 +174,17 @@ function getBoolean(value: any): boolean {
 }
 
 function getPwsh(): string {
-  var pwshCore = getBoolean("pwshcore");
-  if (pwshCore) {
-    return "pwsh";
-  }
-  else {
-    return "powershell.exe";
-  }
+  return "powershell.exe";
+}
+
+function getLocalScriptPath(fileName: string): string {
+  return path.join(__dirname, fileName);
 }
 
 if (require.main === module) {
-  main();
+  main().catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    setResult(TaskResult.Failed, message);
+    process.exitCode = 1;
+  });
 }

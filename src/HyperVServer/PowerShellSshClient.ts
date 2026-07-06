@@ -1,4 +1,5 @@
-import { Client, ConnectConfig } from 'ssh2';
+import path from "path";
+import { Client, ClientChannel, ConnectConfig, SFTPWrapper } from "ssh2";
 
 var _disconnected = false;
 
@@ -9,12 +10,12 @@ export class PowerShellSSHClient {
     this.client = new Client();
   }
 
-  async executeScript(scriptPath: string, scriptArguments: string): Promise<string> {
+  async executeScript(scriptPath: string, scriptArguments: string[]): Promise<string> {
     console.log("### SSH Tunnel - Executing script:" + scriptPath);
     const conn = await this.connect();
 
     console.log("### SSH Tunnel - Retrieving remote temp folder");
-    var remoteTempFolder = await this.sendCommand('echo %temp%', conn);
+    var remoteTempFolder = await this.sendCommand(`${this.pwsh} -NoProfile -Command "[System.IO.Path]::GetTempPath()"`, conn);
     remoteTempFolder = remoteTempFolder.trim();
     console.log("### SSH Tunnel - Remote temp folder: " + remoteTempFolder);
 
@@ -27,13 +28,10 @@ export class PowerShellSSHClient {
     console.log("### SSH Tunnel - Remote script path: " + remoteLogScriptPath);
 
     // figure out the logging lib path based on the script path
-    var path = require('path');
-    var scriptFileName = path.basename(scriptPath);
-    scriptFileName = scriptFileName.substring(0, scriptFileName.length - 4);
-    var logScriptPath = scriptPath.replace(scriptFileName, "Logging");
+    var logScriptPath = path.join(path.dirname(scriptPath), "Logging.ps1");
     await this.uploadFile(conn, logScriptPath, remoteLogScriptPath);
 
-    var result = await this.sendCommand(`${this.pwsh} -File ${remoteScriptPath} ${scriptArguments}`, conn);
+    var result = await this.sendCommand(this.createPowerShellCommand(remoteScriptPath, scriptArguments), conn);
     result = result.trim();
     //console.log("### SSH Tunnel - Script result: ");
     //console.log(result);
@@ -49,7 +47,7 @@ export class PowerShellSSHClient {
           console.log("### SSH Tunnel - Connection ready");
           resolve(this.client);
         })
-        .on('error', (err) => {
+        .on('error', (err: Error) => {
           if (!_disconnected) {
             console.log("### SSH Tunnel - Connection error");
             console.log(err);
@@ -69,19 +67,21 @@ export class PowerShellSSHClient {
 
   async uploadFile(conn: Client, localPath: string, remotePath: string): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      conn.sftp((err, sftp) => {
+      conn.sftp((err: Error | undefined, sftp: SFTPWrapper) => {
         console.log("### SSH Tunnel - Initiating SFTP connection");
         if (err) {
           console.log("### SSH Tunnel - SFTP connection error");
           reject(err);
+          return;
         }
         console.log("### SSH Tunnel - SFTP connection established");
 
         console.log("### SSH Tunnel - Uploading file " + localPath + " to " + remotePath);
-        sftp.fastPut(localPath, remotePath, {}, (err) => {
+        sftp.fastPut(localPath, remotePath, {}, (err: Error | null | undefined) => {
           if (err) {
             console.log("### SSH Tunnel - File upload error");
             reject(err);
+            return;
           }
           console.log("### SSH Tunnel - File uploaded");
           resolve();
@@ -94,29 +94,31 @@ export class PowerShellSSHClient {
   private async sendCommand(command: string, conn: Client): Promise<string> {
     return new Promise((resolve, reject) => {
       console.log("### SSH Tunnel - Trying to execute command: " + command);
-      conn.exec(command, (err, stream) => {
+      conn.exec(command, (err: Error | undefined, stream: ClientChannel) => {
         if (err) {
           console.log("### SSH Tunnel - Command error");
-          this.disconnect(conn);
+          void this.disconnect(conn);
           reject(err);
+          return;
         }
         console.log("### SSH Tunnel - Command executing");
         var result = '';
         stream
-          .on('close', (code: any, signal: any) => {
+          .on('close', (code: number | undefined, signal: string | undefined) => {
             console.log("### SSH Tunnel - Command executed");
-            if (code != undefined && Number.parseInt(code) !== 0) {
+            if (code != undefined && code !== 0) {
               console.log("### SSH Tunnel - Error executing command via PowerShell. Exit code: " + code + " Signal: " + signal);
-              reject("Error executing command via PowerShell. Exit code:" + code + " Signal:" + signal);
+              reject(new Error("Error executing command via PowerShell. Exit code:" + code + " Signal:" + signal));
+              return;
             }
             console.log("### SSH Tunnel - Successfull executed script via PowerShell. Exit code:" + code + " signal:" + signal);
             resolve(result);
           })
-          .on('data', (data: string) => {
+          .on('data', (data: Buffer | string) => {
             result += data.toString().trim();
             console.log(data.toString().trim());
           })
-          .stderr.on('data', (data) => {
+          .stderr.on('data', (data: Buffer | string) => {
             console.log('(SSH-Error) ' + data.toString().trim());
             //reject(data.toString().trim());
           });
@@ -125,11 +127,24 @@ export class PowerShellSSHClient {
   }
 
   private async disconnect(conn: Client): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       console.log("### SSH Tunnel - Disconnecting");
+      conn.once("close", () => resolve());
       conn.end();
       _disconnected = true;
-      console.log("### SSH Tunnel - Disconnected");
     });
+  }
+
+  private createPowerShellCommand(scriptPath: string, scriptArguments: string[]): string {
+    const commandParts = [this.pwsh, "-File", this.quotePowerShellArgument(scriptPath)];
+    for (const argument of scriptArguments) {
+      commandParts.push(argument.startsWith("-") ? argument : this.quotePowerShellArgument(argument));
+    }
+
+    return commandParts.join(" ");
+  }
+
+  private quotePowerShellArgument(value: string): string {
+    return `'${value.replace(/'/g, "''")}'`;
   }
 }

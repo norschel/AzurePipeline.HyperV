@@ -51,20 +51,20 @@ jobs:
           filePattern: 'vss-extension.json'
 
     - powershell: |
-        # Azure DevOps task module needs to be located side-by-side to the core script
+        # Azure DevOps task module needs to be located in ps_modules\VstsTaskSdk relative to the task script
         write-host "Create PS-Modules folder"
         $scriptFolder = "$(Build.SourcesDirectory)\src\HyperVServer\HyperVServer"
         $psModulesFolder = "$scriptFolder\ps_modules"
         mkdir $psModulesFolder
         write-host "Save VstsTaskSdk module into ps_modules folder"
         Save-Module -Name VstsTaskSdk -Path $psModulesFolder
-        write-host "Copy VstsTaskSdk module near to the main script"
+        write-host "Copy VstsTaskSdk module into ps_modules\VstsTaskSdk folder"
         $sdk = Get-ChildItem -Path $psModulesFolder -Recurse -Filter VstsTaskSdk.psm1
         write-host "Found module:"
         $sdk
         
         $from =$sdk.Directory.FullName
-        $to = $scriptFolder
+        $to = "$psModulesFolder\VstsTaskSdk"
 
         write-host "Copy module from $from to $to :"
         Get-ChildItem -Path $from | % { 

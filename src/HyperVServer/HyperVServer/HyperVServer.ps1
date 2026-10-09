@@ -208,24 +208,24 @@ function Get-VMExists {
 
 	write-LogInfo("Checking if all configured VMs are found on host $hostname");
 
-	$nonExistingVMs;
+	$nonExistingVMs = @();
 	for ($i = 0; $i -lt $vmnames.Count; $i++) {
 		$vmname = $vmnames[$i];
 
 		$vm = Get-VM -Name $vmname -Computername $hostname
 		if ($null -eq $vm) {
 			write-LogError("VM $vmname doesn't exist on Hyper-V server $hostname")
+			$nonExistingVMs += $vmname
 		}
 	}
-	$notExistingVM = $notExistingVM.Trim;
+	$notExistingVM = $nonExistingVMs -join " "
 
-	if ($notExistingVM.Count -gt 0) {
+	if ($nonExistingVMs.Count -gt 0) {
 		write-LogError("The task found some non existing VM names. Please check VMs $notExistingVM on host $hostname.");
 		#throw "The task found some non existing VM names. Please check VMs $notExistingVM on host $hostname.";
 		write-LogError("The task found some non existing VM names. Please check VMs $notExistingVM on host $hostname.");
 		exit 1;
 	}
-	$notExistingVM += " $vmname"
 
 	write-LogInfo("All configured VMs are found on host $hostname");
 }

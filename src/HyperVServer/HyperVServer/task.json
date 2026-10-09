@@ -7,11 +7,11 @@
   "helpMarkDown": "This step supports remote control of Hyper-V VMs and servers (without SCVMM). It supports starting and stopping a VM plus creating, restoring or deleting a VM snapshot.",
   "category": "Deploy",
   "version": {
-    "Major": 8,
+    "Major": 9,
     "Minor": 0,
     "Patch": 0
   },
-  "minimumAgentVersion": "1.95.1",
+  "minimumAgentVersion": "3.232.1",
   "demands": [ ],
   "instanceNameFormat": "Hyper-V Server: $(Action) $(VMName) on $(Computername)",
   "inputs": [
@@ -48,6 +48,61 @@
       "helpMarkDown": "The NetBIOS, IP address and fully-qualified domain names are allowable to select the computer on which are the VMs."
     },
     {
+      "name": "SSHMode",
+      "type": "boolean",
+      "label": "Use SSH",
+      "required": false,
+      "defaultValue": "false",
+      "helpMarkDown": "Use SSH instead of PowerShell remoting. Enable this on non-Windows agents or when PowerShell remoting is unavailable."
+    },
+    {
+      "name": "SSHHostName",
+      "type": "string",
+      "label": "SSH Hostname",
+      "required": false,
+      "defaultValue": "",
+      "visibleRule": "SSHMode = true",
+      "helpMarkDown": "Optional SSH host name or IP address. If empty, the Hostname input is reused."
+    },
+    {
+      "name": "SSHPort",
+      "type": "string",
+      "label": "SSH Port",
+      "required": false,
+      "defaultValue": "22",
+      "visibleRule": "SSHMode = true",
+      "helpMarkDown": "The TCP port of the SSH service on the Hyper-V host."
+    },
+    {
+      "name": "SSHUsername",
+      "type": "string",
+      "label": "SSH Username",
+      "required": false,
+      "defaultValue": "",
+      "visibleRule": "SSHMode = true",
+      "helpMarkDown": "The user account to authenticate with over SSH."
+    },
+    {
+      "name": "SSHPassword",
+      "type": "string",
+      "label": "SSH Password",
+      "required": false,
+      "defaultValue": "",
+      "isConfidential": true,
+      "visibleRule": "SSHMode = true",
+      "helpMarkDown": "Password for SSH authentication. Leave empty when using a private key."
+    },
+    {
+      "name": "SSHPrivateKey",
+      "type": "multiLine",
+      "label": "SSH Private Key",
+      "required": false,
+      "defaultValue": "",
+      "isConfidential": true,
+      "visibleRule": "SSHMode = true",
+      "helpMarkDown": "Optional private key for SSH authentication. When provided, the password is ignored."
+    },
+    {
       "name": "SnapshotName",
       "type": "string",
       "label": "Snapshot Name",
@@ -60,12 +115,12 @@
       "name": "StartVMStatusCheckType",
       "type": "pickList",
       "label": "Status Check Type",
-      "defaultValue": "HeartbeatApplicationsHealthy",
+      "defaultValue": "HeartBeatApplicationsHealthy",
       "required": true,
       "helpMarkDown": "The way to detect if a VM has been correctly started. Only valid for Start VM action.",
       "visibleRule": "Action = StartVM",
       "options": {
-        "HeartbeatApplicationsHealthy": "ApplicationsHealthy (Heartbeat)",
+        "HeartBeatApplicationsHealthy": "ApplicationsHealthy (Heartbeat)",
         "WaitingTime": "Waiting time"
       }
     },
@@ -80,10 +135,9 @@
     }
   ],
   "execution": {
-    "PowerShell3": {
-      "target": "$(currentDirectory)\\HyperVServer.ps1",
-      "argumentFormat": "",
-      "workingDirectory": "$(currentDirectory)"
+    "Node20_1": {
+      "target": "index.js",
+      "argumentFormat": ""
     }
   },
   "targets": [
@@ -96,4 +150,3 @@
         }
     ]
 }
-

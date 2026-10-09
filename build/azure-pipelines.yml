@@ -82,11 +82,6 @@ jobs:
       #      ExcludeRules: 'PSAvoidUsingWriteHost'
       #      Severity: 'Error,Warning'
 
-    #- task: UseNode@1
-    #  displayName: 'Use Node 10.x'
-    #  inputs:
-    #    version: 10.x
-
     - task: UseNode@1
       displayName: 'Use Node 20.x'
       inputs:

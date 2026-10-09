@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "HyperV",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "name": "Hyper-V",
   "publisher": "Orschel",
   "public": true,

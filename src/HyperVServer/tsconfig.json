@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

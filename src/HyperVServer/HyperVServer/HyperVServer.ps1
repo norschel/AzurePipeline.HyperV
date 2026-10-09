@@ -189,7 +189,7 @@ function Get-ParameterOverview {
 	write-LogInfo("Assigned VM name(s) is/are $VMName.");
 	write-LogInfo("Assigned Hyper-V server host is $Computername.");
 
-	if ($Action -eq "StartVM") {
+	if ($Action -ieq "StartVM") {
 		write-LogInfo("Status check type: $statusCheckType");
 		if ($statusCheckType -eq "WaitingTime") {
 			write-LogInfo("Waiting time interval (in sec): $timeBasedStatusWaitInterval")

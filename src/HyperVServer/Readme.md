@@ -31,7 +31,7 @@ and [Hyper-V Module](https://technet.microsoft.com/itpro/powershell/windows/hype
 * Changes since 9.0.0: Migrate GH action core script (incl. AzP logging lib) to Az Pipelines task, add SSH support from GH Action action, cross platform support
 * Changes since 8.0.31: Fixed SDK copied to wrong location
 
-## Known limitions
+## Known limitations
 
 
 ## Additional Links

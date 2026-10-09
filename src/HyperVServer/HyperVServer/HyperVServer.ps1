@@ -1107,15 +1107,15 @@ Try {
 		"turnoffvm" {
 			Start-TurnOfVM -vmnames $vmNames -hostname $hostName -Confirm:$false
 		}
-		"createcheckpoint" {
+		"createsnapshot" {
 			New-HyperVCheckpoint -vmnames $vmNames -hostname $hostName -Confirm:$false
 			Get-StatusOfNewHyperVCheckpoint -vmnames $vmNames -hostname $hostName
 		}
-		"restorecheckpoint" {
+		"restoresnapshot" {
 			Restore-HyperVCheckpoint -vmnames $vmNames -hostname $hostName -Confirm:$false
 			Get-StatusOfRestoreHyperVCheckpoint -vmnames $vmNames -hostname $hostName
 		}
-		"removecheckpoint" {
+		"removesnapshot" {
 			Remove-HyperVCheckpoint -vmnames $vmNames -hostname $hostName -Confirm:$false
 			Get-StatusOfRemoveHyperVCheckpoint -vmnames $vmNames -hostname $hostName
 		}

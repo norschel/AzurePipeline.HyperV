@@ -12,7 +12,7 @@ trigger:
 
 variables:
     majorversion: 9
-    minorversion: 0
+    minorversion: 1
     PublisherID: 'Orschel'
     marketplaceServiceConnection: 'Marketplace-Orschel'
 

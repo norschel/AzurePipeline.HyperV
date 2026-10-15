@@ -115,6 +115,16 @@ stages:
         patterns: '**/*.vsix'
 
       - task: azdo-marketplace@6
+        name: showPreview
+        displayName: 'Resolve published extension metadata'
+        inputs:
+          operation: show
+          connectionType: PAT
+          connectionNamePAT: '$(marketplaceServiceConnection)'
+          publisherId: '$(PublisherID)'
+          extensionId: 'hyperv-private-preview'
+
+      - task: azdo-marketplace@6
         name: publishPreview
         displayName: 'Publish private preview to Marketplace'
         inputs:
@@ -155,6 +165,16 @@ stages:
             - download: current
               artifact: Extension-AzD
               patterns: '**/*.vsix'
+
+            - task: azdo-marketplace@6
+              name: showProduction
+              displayName: 'Resolve published extension metadata'
+              inputs:
+                operation: show
+                connectionType: PAT
+                connectionNamePAT: '$(marketplaceServiceConnection)'
+                publisherId: '$(PublisherID)'
+                extensionId: 'hyperv'
 
             - task: azdo-marketplace@6
               name: publishProduction

@@ -147,8 +147,8 @@ stages:
           method: 'vsix'
           vsixFile: '$(publishPreview.Extension.OutputPath)'
 
-- stage: HyperVProd
-  displayName: 'HyperVProd'
+- stage: PublishPublic
+  displayName: 'Publish public'
   dependsOn: PublishPreview
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:

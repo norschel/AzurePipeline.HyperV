@@ -31,6 +31,9 @@ stages:
           VsixFileSuffix: 'azurepipelines_preview'
           DropSuffix: 'Preview'
           ExtensionVisibility: 'private'
+          TaskNameSuffix: 'PrivatePreview'
+          TaskFriendlyNameSuffix: ' (Private Preview)'
+          TaskID: '3b1f2c6d-7a94-4e2b-9c15-2f8e6a0d4b7c'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'
           ExtensionID: 'hyperv'
@@ -38,14 +41,11 @@ stages:
           VsixFileSuffix: 'azurepipelines'
           DropSuffix: 'AzD'
           ExtensionVisibility: 'public'
+          TaskNameSuffix: ''
+          TaskFriendlyNameSuffix: ''
+          TaskID: ''
 
-    steps:
-      - task: colinsalmcorner.colinsalmcorner-buildtasks.replace-tokens-task.ReplaceTokens@1
-        displayName: 'Set Releasetype of HyperVServer task'
-        inputs:
-            sourcePath: src/HyperVServer
-            filePattern: 'vss-extension.json'
-
+    steps:      
       - powershell: |
           # Azure DevOps task module needs to be located in ps_modules\VstsTaskSdk relative to the task script
           write-host "Create PS-Modules folder"
@@ -71,6 +71,21 @@ stages:
           Remove-Item -Path $from -Recurse -Force
         displayName: 'Add VstsTaskSdk PowerShell SDK'
 
+      - powershell: |
+          $taskPath = "$(Build.SourcesDirectory)\src\HyperVServer\HyperVServer\task.json"
+          write-host "Patch task.json at $taskPath"
+          $task = Get-Content -Path $taskPath -Raw | ConvertFrom-Json
+
+          $task.name = "$($task.name)$(TaskNameSuffix)"
+          $task.friendlyName = "$($task.friendlyName)$(TaskFriendlyNameSuffix)"
+          if ('$(TaskID)') { $task.id = '$(TaskID)' }
+
+          $task | ConvertTo-Json -Depth 100 | Set-Content -Path $taskPath -Encoding UTF8
+          write-host "Patched task.json:"
+          Get-Content -Path $taskPath -Raw
+        displayName: 'Patch task.json variant metadata'
+        condition: ne(variables['TaskID'], '')
+
         #- task: ToreGroneng.ToreGroneng-PSScriptAnalyzer-Task.PSScriptAnalyzer-Task.PowerShell Script Analyzer@1
         #  displayName: 'Execute PsScriptAnalyzer '
         #  inputs:
@@ -90,7 +105,6 @@ stages:
           extensionId: '$(ExtensionID)'
           extensionName: '$(ExtensionName)'
           updateTasksVersion: major
-          updateTasksId: true
           extensionVisibility: '$(ExtensionVisibility)'
 
       - task: PublishPipelineArtifact@1

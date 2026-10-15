@@ -14,100 +14,200 @@ variables:
     majorversion: 8
     minorversion: 0
     PublisherID: 'Orschel'
-    
-parameters:
-- name: extensionvisibility
-  displayName: Extension Visibility
-  type: string
-  default: private
-  values:
-  - private
-  - public
+    marketplaceServiceConnection: 'Marketplace-Orschel'
 
-jobs:
-- job: BuildExtensionVariant
-  displayName: "Build Azure DevOps extension variant"
-  strategy: 
-    maxParallel: 4
-    matrix: 
-      Preview_AzureDevOps:
-        ExtensionName: 'Hyper-V (Preview)'
-        ExtensionID: 'hyperv-preview'
-        ExtensionCategory: 'Azure Pipelines'
-        VsixFileSuffix: 'azurepipelines_preview'
-        DropSuffix: 'Preview'
-      Public_AzureDevOps:
-        ExtensionName: 'Hyper-V'
-        ExtensionID: 'hyperv'
-        ExtensionCategory: 'Azure Pipelines'
-        VsixFileSuffix: 'azurepipelines'
-        DropSuffix: 'AzD'
-    
-  steps:
-    - task: colinsalmcorner.colinsalmcorner-buildtasks.replace-tokens-task.ReplaceTokens@1
-      displayName: 'Set Releasetype of HyperVServer task'
-      inputs:
-          sourcePath: src/HyperVServer
-          filePattern: 'vss-extension.json'
+stages:
+- stage: Build
+  jobs:
+  - job: BuildExtensionVariant
+    displayName: "Build Azure DevOps extension variant"
+    strategy:
+      maxParallel: 4
+      matrix:
+        Preview_AzureDevOps:
+          ExtensionName: 'Hyper-V (Preview)'
+          ExtensionID: 'hyperv-preview'
+          ExtensionCategory: 'Azure Pipelines'
+          VsixFileSuffix: 'azurepipelines_preview'
+          DropSuffix: 'Preview'
+          ExtensionVisibility: 'private'
+        Public_AzureDevOps:
+          ExtensionName: 'Hyper-V'
+          ExtensionID: 'hyperv'
+          ExtensionCategory: 'Azure Pipelines'
+          VsixFileSuffix: 'azurepipelines'
+          DropSuffix: 'AzD'
+          ExtensionVisibility: 'public'
 
-    - powershell: |
-        # Azure DevOps task module needs to be located in ps_modules\VstsTaskSdk relative to the task script
-        write-host "Create PS-Modules folder"
-        $scriptFolder = "$(Build.SourcesDirectory)\src\HyperVServer\HyperVServer"
-        $psModulesFolder = "$scriptFolder\ps_modules"
-        mkdir $psModulesFolder
-        write-host "Save VstsTaskSdk module into ps_modules folder"
-        Save-Module -Name VstsTaskSdk -Path $psModulesFolder
-        write-host "Copy VstsTaskSdk module into ps_modules\VstsTaskSdk folder"
-        $sdk = Get-ChildItem -Path $psModulesFolder -Recurse -Filter VstsTaskSdk.psm1
-        write-host "Found module:"
-        $sdk
-        
-        $from =$sdk.Directory.FullName
-        $to = "$psModulesFolder\VstsTaskSdk"
+    steps:
+      - task: colinsalmcorner.colinsalmcorner-buildtasks.replace-tokens-task.ReplaceTokens@1
+        displayName: 'Set Releasetype of HyperVServer task'
+        inputs:
+            sourcePath: src/HyperVServer
+            filePattern: 'vss-extension.json'
 
-        write-host "Copy module from $from to $to :"
-        Get-ChildItem -Path $from | % { 
-          Copy-Item $_.fullname $to -Recurse -Force -verbose
-        }
-        ls $to
+      - powershell: |
+          # Azure DevOps task module needs to be located in ps_modules\VstsTaskSdk relative to the task script
+          write-host "Create PS-Modules folder"
+          $scriptFolder = "$(Build.SourcesDirectory)\src\HyperVServer\HyperVServer"
+          $psModulesFolder = "$scriptFolder\ps_modules"
+          mkdir $psModulesFolder
+          write-host "Save VstsTaskSdk module into ps_modules folder"
+          Save-Module -Name VstsTaskSdk -Path $psModulesFolder
+          write-host "Copy VstsTaskSdk module into ps_modules\VstsTaskSdk folder"
+          $sdk = Get-ChildItem -Path $psModulesFolder -Recurse -Filter VstsTaskSdk.psm1
+          write-host "Found module:"
+          $sdk
 
-        Remove-Item -Path $from -Recurse -Force
-      displayName: 'Add VstsTaskSdk PowerShell SDK'
+          $from =$sdk.Directory.FullName
+          $to = "$psModulesFolder\VstsTaskSdk"
 
-      #- task: ToreGroneng.ToreGroneng-PSScriptAnalyzer-Task.PSScriptAnalyzer-Task.PowerShell Script Analyzer@1
-      #  displayName: 'Execute PsScriptAnalyzer '
-      #  inputs:
-      #      PsFolder: src/HyperVServer/HyperVServer
-      #      ExcludeRules: 'PSAvoidUsingWriteHost'
-      #      Severity: 'Error,Warning'
+          write-host "Copy module from $from to $to :"
+          Get-ChildItem -Path $from | % {
+            Copy-Item $_.fullname $to -Recurse -Force -verbose
+          }
+          ls $to
 
-    - task: UseNode@1
-      displayName: 'Use Node 20.x'
-      inputs:
-        version: 20.x
+          Remove-Item -Path $from -Recurse -Force
+        displayName: 'Add VstsTaskSdk PowerShell SDK'
 
-    - task: TfxInstaller@5
-      displayName: 'Use Node CLI for Azure DevOps'
-      inputs:
-        version: '0.x'
-        checkLatest: true
+        #- task: ToreGroneng.ToreGroneng-PSScriptAnalyzer-Task.PSScriptAnalyzer-Task.PowerShell Script Analyzer@1
+        #  displayName: 'Execute PsScriptAnalyzer '
+        #  inputs:
+        #      PsFolder: src/HyperVServer/HyperVServer
+        #      ExcludeRules: 'PSAvoidUsingWriteHost'
+        #      Severity: 'Error,Warning'
 
-    - task: PackageAzureDevOpsExtension@5
-      displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
-      inputs:
-        rootFolder: src/HyperVServer
-        outputPath: '$(build.artifactstagingdirectory)\Orschel.HyperV_$(majorversion).$(minorversion)_$(VsixFileSuffix).vsix'
-        publisherId: '$(PublisherID)'
-        extensionVersion: '$(Build.BuildNumber)'
-        extensionId: '$(ExtensionID)'
-        extensionName: '$(ExtensionName)'
-        updateTasksVersion: true
-        extensionVisibility: ${{ parameters.extensionvisibility }}
+      - task: UseNode@1
+        displayName: 'Use Node 20.x'
+        inputs:
+          version: 20.x
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Pipeline Artifact : Extension'
-      inputs:
-        artifact: Extension-$(DropSuffix)
-        targetPath: '$(build.artifactstagingdirectory)'
-        
+      - task: TfxInstaller@5
+        displayName: 'Use Node CLI for Azure DevOps'
+        inputs:
+          version: '0.x'
+          checkLatest: true
+
+      - task: PackageAzureDevOpsExtension@5
+        displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
+        inputs:
+          rootFolder: src/HyperVServer
+          outputPath: '$(build.artifactstagingdirectory)\Orschel.HyperV_$(majorversion).$(minorversion)_$(VsixFileSuffix).vsix'
+          publisherId: '$(PublisherID)'
+          extensionVersion: '$(Build.BuildNumber)'
+          extensionId: '$(ExtensionID)'
+          extensionName: '$(ExtensionName)'
+          updateTasksVersion: true
+          extensionVisibility: '$(ExtensionVisibility)'
+
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish Pipeline Artifact : Extension'
+        inputs:
+          artifact: Extension-$(DropSuffix)
+          targetPath: '$(build.artifactstagingdirectory)'
+
+- stage: PublishPreview
+  displayName: 'Publish private preview'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:
+  - job: PublishPreview
+    steps:
+      - checkout: none
+
+      - download: current
+        artifact: Extension-Preview
+        patterns: '**/*.vsix'
+
+      - task: UseNode@1
+        inputs:
+          version: '22.x'
+
+      - task: TfxInstaller@5
+        inputs:
+          version: '0.x'
+          checkLatest: true
+
+      - task: PublishAzureDevOpsExtension@5
+        name: publishPreview
+        displayName: 'Publish private preview to Marketplace'
+        inputs:
+          connectTo: 'VsTeam'
+          connectedServiceName: '$(marketplaceServiceConnection)'
+          fileType: 'vsix'
+          vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+          noWaitValidation: true
+
+      - task: IsAzureDevOpsExtensionValid@5
+        displayName: 'Validate private preview'
+        inputs:
+          connectTo: 'VsTeam'
+          connectedServiceName: '$(marketplaceServiceConnection)'
+          method: 'vsix'
+          vsixFile: '$(publishPreview.Extension.OutputPath)'
+
+- stage: HyperVProd
+  displayName: 'HyperVProd'
+  dependsOn: PublishPreview
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:
+  - deployment: PublishProduction
+    environment: 'production-Marketplace-Orschel'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+              persistCredentials: true
+              fetchDepth: 1
+
+            - download: none
+
+            - download: current
+              artifact: Extension-AzD
+              patterns: '**/*.vsix'
+
+            - task: UseNode@1
+              inputs:
+                version: '22.x'
+
+            - task: TfxInstaller@5
+              inputs:
+                version: '0.x'
+                checkLatest: true
+
+            - task: PublishAzureDevOpsExtension@5
+              name: publishProduction
+              displayName: 'Publish public production extension to Marketplace'
+              inputs:
+                connectTo: 'VsTeam'
+                connectedServiceName: '$(marketplaceServiceConnection)'
+                fileType: 'vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-AzD/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines.vsix'
+                noWaitValidation: true
+
+            - task: IsAzureDevOpsExtensionValid@5
+              displayName: 'Validate production release'
+              inputs:
+                connectTo: 'VsTeam'
+                connectedServiceName: '$(marketplaceServiceConnection)'
+                method: 'vsix'
+                vsixFile: '$(publishProduction.Extension.OutputPath)'
+
+            - pwsh: |
+                $ErrorActionPreference = 'Stop'
+                $tag = "v$env:RELEASE_MAJOR"
+                $remoteTag = @(git ls-remote --tags origin "refs/tags/$tag")
+                if ($LASTEXITCODE -ne 0) { throw 'Cannot read existing release tag.' }
+                $previousTarget = if ($remoteTag.Count -gt 0) { ($remoteTag[0] -split '\s+')[0] } else { '' }
+                git -c user.name='Azure Pipelines' -c user.email='azure-pipelines@local' tag --force --annotate $tag $env:RELEASE_COMMIT --message "Release $env:RELEASE_VERSION"
+                if ($LASTEXITCODE -ne 0) { throw 'Cannot create release tag.' }
+                git push origin "refs/tags/$tag" "--force-with-lease=refs/tags/${tag}:$previousTarget"
+                if ($LASTEXITCODE -ne 0) { throw 'Cannot push release tag.' }
+              displayName: 'Update major release tag'
+              env:
+                RELEASE_MAJOR: $(majorversion)
+                RELEASE_VERSION: $(Build.BuildNumber)
+                RELEASE_COMMIT: $(Build.SourceVersion)
+

@@ -90,6 +90,7 @@ stages:
           extensionId: '$(ExtensionID)'
           extensionName: '$(ExtensionName)'
           updateTasksVersion: patch
+          updateTasksId: true
           extensionVisibility: '$(ExtensionVisibility)'
 
       - task: PublishPipelineArtifact@1

@@ -89,7 +89,7 @@ stages:
           extensionVersion: '$(Build.BuildNumber)'
           extensionId: '$(ExtensionID)'
           extensionName: '$(ExtensionName)'
-          updateTasksVersion: patch
+          updateTasksVersion: major
           updateTasksId: true
           extensionVisibility: '$(ExtensionVisibility)'
 

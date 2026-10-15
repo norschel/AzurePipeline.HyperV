@@ -117,6 +117,7 @@ stages:
       - task: azdo-marketplace@6
         name: showPreview
         displayName: 'Resolve published extension metadata'
+        continueOnError: true
         inputs:
           operation: show
           connectionType: PAT
@@ -169,6 +170,7 @@ stages:
             - task: azdo-marketplace@6
               name: showProduction
               displayName: 'Resolve published extension metadata'
+              continueOnError: true
               inputs:
                 operation: show
                 connectionType: PAT

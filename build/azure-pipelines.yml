@@ -78,27 +78,18 @@ stages:
         #      ExcludeRules: 'PSAvoidUsingWriteHost'
         #      Severity: 'Error,Warning'
 
-      - task: UseNode@1
-        displayName: 'Use Node 20.x'
-        inputs:
-          version: 22.x
-
-      - task: TfxInstaller@5
-        displayName: 'Use Node CLI for Azure DevOps'
-        inputs:
-          version: '0.x'
-          checkLatest: true
-
-      - task: PackageAzureDevOpsExtension@5
+      - task: azdo-marketplace@6
         displayName: 'Package Extension - HyperV for Azure DevOps / Visual Studio Marketplace based deployment'
         inputs:
-          rootFolder: src/HyperVServer
+          operation: package
+          workingDirectory: '$(Build.SourcesDirectory)/src/HyperVServer'
+          manifestFile: vss-extension.json
           outputPath: '$(build.artifactstagingdirectory)\Orschel.HyperV_$(majorversion).$(minorversion)_$(VsixFileSuffix).vsix'
           publisherId: '$(PublisherID)'
           extensionVersion: '$(Build.BuildNumber)'
           extensionId: '$(ExtensionID)'
           extensionName: '$(ExtensionName)'
-          updateTasksVersion: true
+          updateTasksVersion: patch
           extensionVisibility: '$(ExtensionVisibility)'
 
       - task: PublishPipelineArtifact@1
@@ -122,32 +113,24 @@ stages:
         artifact: Extension-Preview
         patterns: '**/*.vsix'
 
-      - task: UseNode@1
-        inputs:
-          version: '22.x'
-
-      - task: TfxInstaller@5
-        inputs:
-          version: '0.x'
-          checkLatest: true
-
-      - task: PublishAzureDevOpsExtension@5
+      - task: azdo-marketplace@6
         name: publishPreview
         displayName: 'Publish private preview to Marketplace'
         inputs:
-          connectTo: 'VsTeam'
-          connectedServiceName: '$(marketplaceServiceConnection)'
-          fileType: 'vsix'
+          operation: publish
+          connectionType: PAT
+          connectionNamePAT: '$(marketplaceServiceConnection)'
+          use: vsix
           vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
           noWaitValidation: true
 
-      - task: IsAzureDevOpsExtensionValid@5
+      - task: azdo-marketplace@6
         displayName: 'Validate private preview'
         inputs:
-          connectTo: 'VsTeam'
-          connectedServiceName: '$(marketplaceServiceConnection)'
-          method: 'vsix'
-          vsixFile: '$(publishPreview.Extension.OutputPath)'
+          operation: waitForValidation
+          connectionType: PAT
+          connectionNamePAT: '$(marketplaceServiceConnection)'
+          vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
 
 - stage: PublishPublic
   displayName: 'Publish public'
@@ -172,32 +155,24 @@ stages:
               artifact: Extension-AzD
               patterns: '**/*.vsix'
 
-            - task: UseNode@1
-              inputs:
-                version: '22.x'
-
-            - task: TfxInstaller@5
-              inputs:
-                version: '0.x'
-                checkLatest: true
-
-            - task: PublishAzureDevOpsExtension@5
+            - task: azdo-marketplace@6
               name: publishProduction
               displayName: 'Publish public production extension to Marketplace'
               inputs:
-                connectTo: 'VsTeam'
-                connectedServiceName: '$(marketplaceServiceConnection)'
-                fileType: 'vsix'
+                operation: publish
+                connectionType: PAT
+                connectionNamePAT: '$(marketplaceServiceConnection)'
+                use: vsix
                 vsixFile: '$(Pipeline.Workspace)/Extension-AzD/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines.vsix'
                 noWaitValidation: true
 
-            - task: IsAzureDevOpsExtensionValid@5
+            - task: azdo-marketplace@6
               displayName: 'Validate production release'
               inputs:
-                connectTo: 'VsTeam'
-                connectedServiceName: '$(marketplaceServiceConnection)'
-                method: 'vsix'
-                vsixFile: '$(publishProduction.Extension.OutputPath)'
+                operation: waitForValidation
+                connectionType: PAT
+                connectionNamePAT: '$(marketplaceServiceConnection)'
+                vsixFile: '$(Pipeline.Workspace)/Extension-AzD/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines.vsix'
 
             - pwsh: |
                 $ErrorActionPreference = 'Stop'

@@ -25,8 +25,8 @@ stages:
       maxParallel: 4
       matrix:
         Preview_AzureDevOps:
-          ExtensionName: 'Hyper-V (Preview)'
-          ExtensionID: 'hyperv-preview'
+          ExtensionName: 'Hyper-V (Private Preview)'
+          ExtensionID: 'hyperv-private-preview'
           ExtensionCategory: 'Azure Pipelines'
           VsixFileSuffix: 'azurepipelines_preview'
           DropSuffix: 'Preview'

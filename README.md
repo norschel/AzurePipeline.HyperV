@@ -13,14 +13,14 @@ Information about Microsoft Windows Hyper-V Powershell cmdlets can be found at [
 # Build and Test
 Information on installing Node CLI for Azure DevOps and packaging and publishing Azure DevOps extensions can be found at [Node CLI for Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/extend/publish/overview?view=vsts).
 
-The [Azure Pipelines definition](build/azure-pipelines.yml) builds two VSIX artifacts with the same version: a private `hyperv-preview` extension (`Extension-Preview`) and a public `hyperv` extension (`Extension-AzD`).
+The [Azure Pipelines definition](build/azure-pipelines.yml) builds two VSIX artifacts with the same version: a private `hyperv-private-preview` extension (`Extension-Preview`) and a public `hyperv` extension (`Extension-AzD`).
 
 ## Release Pipeline
 
 | Stage | Purpose |
 | --- | --- |
 | `Build` | Package the private preview and public production variants in parallel and upload both VSIX artifacts. |
-| `PublishPreview` | Publish `hyperv-preview` privately to the Marketplace and wait for validation. |
+| `PublishPreview` | Publish `hyperv-private-preview` privately to the Marketplace and wait for validation. |
 | `HyperVProd` | After environment approval, publish and validate the already-built public `hyperv` artifact, then update the major Git tag. |
 
 The CI trigger runs on `master`. Both publishing stages also explicitly require `refs/heads/master` and successful preceding stages, so manually queued builds from other branches do not publish extensions or update release tags.
@@ -46,6 +46,8 @@ Before running the release pipeline:
 - Create the `production-Marketplace-Orschel` environment under **Pipelines > Environments** and authorize this pipeline. Under **Approvals and checks**, add an **Approvals** check, select the production approvers, disable self-approval and set a 48-hour timeout. These settings are managed in Azure DevOps, not in YAML. Without this check, the environment does not require approval.
 - Grant the checkout credentials permission to create and update Git tags, including any required GitHub tag ruleset permissions. No separate credentials are stored in YAML.
 - Share the private preview with the Azure DevOps organizations that will test it through the Marketplace.
+
+The private preview uses a new Marketplace identity, `Orschel.hyperv-private-preview`. The previous `Orschel.hyperv-preview` extension was public and cannot be converted to private, even after unpublishing it. Share and install the new extension separately in test organizations; existing installations of the old preview do not migrate automatically. Rebuild the VSIX artifacts before retrying publication so they contain the new identity.
 
 ## Release Tags
 

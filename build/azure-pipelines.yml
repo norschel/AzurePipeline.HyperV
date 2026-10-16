@@ -30,7 +30,7 @@ stages:
           ExtensionCategory: 'Azure Pipelines'
           VsixFileSuffix: 'azurepipelines_preview'
           DropSuffix: 'Preview'
-          ExtensionVisibility: 'private'
+          ExtensionVisibility: 'public'
           TaskNameSuffix: '-preview'
           TaskFriendlyNameSuffix: ' (Preview)'
           TaskID: '3b1f2c6d-7a94-4e2b-9c15-2f8e6a0d4b7c'

@@ -86,7 +86,9 @@ stages:
           $task.version.Minor = [int]$versionParts[1]
           $task.version.Patch = [int]$versionParts[2]
 
-          $task | ConvertTo-Json -Depth 100 | Set-Content -Path $taskPath -Encoding UTF8
+          # tfx rejects a UTF-8 BOM, which Windows PowerShell's Set-Content would add
+          $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+          [System.IO.File]::WriteAllText($taskPath, ($task | ConvertTo-Json -Depth 100), $utf8NoBom)
           write-host "Patched task.json:"
           Get-Content -Path $taskPath -Raw
 
@@ -101,7 +103,7 @@ stages:
             }
           }
 
-          $manifest | ConvertTo-Json -Depth 100 | Set-Content -Path $manifestPath -Encoding UTF8
+          [System.IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 100), $utf8NoBom)
           write-host "Patched vss-extension.json:"
           Get-Content -Path $manifestPath -Raw
         displayName: 'Patch task.json variant metadata'

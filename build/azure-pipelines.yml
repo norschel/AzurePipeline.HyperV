@@ -80,11 +80,31 @@ stages:
           $task.friendlyName = "$($task.friendlyName)$(TaskFriendlyNameSuffix)"
           if ('$(TaskID)') { $task.id = '$(TaskID)' }
 
+          # task.json only supports a 3-part version (Major.Minor.Patch)
+          $versionParts = '$(Build.BuildNumber)'.Split('.')
+          $task.version.Major = [int]$versionParts[0]
+          $task.version.Minor = [int]$versionParts[1]
+          $task.version.Patch = [int]$versionParts[2]
+
           $task | ConvertTo-Json -Depth 100 | Set-Content -Path $taskPath -Encoding UTF8
           write-host "Patched task.json:"
           Get-Content -Path $taskPath -Raw
+
+          $manifestPath = "$(Build.SourcesDirectory)\src\HyperVServer\vss-extension.json"
+          write-host "Patch vss-extension.json at $manifestPath"
+          $manifest = Get-Content -Path $manifestPath -Raw | ConvertFrom-Json
+
+          # Contribution name must match the patched task name
+          foreach ($contribution in $manifest.contributions) {
+            if ($contribution.properties.name) {
+              $contribution.properties.name = "$($contribution.properties.name)$(TaskNameSuffix)"
+            }
+          }
+
+          $manifest | ConvertTo-Json -Depth 100 | Set-Content -Path $manifestPath -Encoding UTF8
+          write-host "Patched vss-extension.json:"
+          Get-Content -Path $manifestPath -Raw
         displayName: 'Patch task.json variant metadata'
-        condition: ne(variables['TaskID'], '')
 
         #- task: ToreGroneng.ToreGroneng-PSScriptAnalyzer-Task.PSScriptAnalyzer-Task.PowerShell Script Analyzer@1
         #  displayName: 'Execute PsScriptAnalyzer '
@@ -104,7 +124,7 @@ stages:
           extensionVersion: '$(Build.BuildNumber)'
           extensionId: '$(ExtensionID)'
           extensionName: '$(ExtensionName)'
-          updateTasksVersion: major
+          updateTasksVersion: none
           extensionVisibility: '$(ExtensionVisibility)'
 
       - task: PublishPipelineArtifact@1

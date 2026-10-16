@@ -25,14 +25,14 @@ stages:
       maxParallel: 4
       matrix:
         Preview_AzureDevOps:
-          ExtensionName: 'Hyper-V (Private Preview)'
-          ExtensionID: 'hyperv-private-preview'
+          ExtensionName: 'Hyper-V (Private Preview 2)'
+          ExtensionID: 'hyperv-private-preview-2'
           ExtensionCategory: 'Azure Pipelines'
           VsixFileSuffix: 'azurepipelines_preview'
           DropSuffix: 'Preview'
           ExtensionVisibility: 'private'
-          TaskNameSuffix: 'PrivatePreview'
-          TaskFriendlyNameSuffix: ' (Private Preview)'
+          TaskNameSuffix: 'PrivatePreview2'
+          TaskFriendlyNameSuffix: ' (Private Preview 2)'
           TaskID: '3b1f2c6d-7a94-4e2b-9c15-2f8e6a0d4b7c'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'

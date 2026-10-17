@@ -44,9 +44,8 @@ stages:
           ExtensionVisibility: 'public'
           TaskNameSuffix: 'Prerelease'
           TaskFriendlyNameSuffix: ' (Prerelease)'
-          # Must match the task ID already published for the hyperv-prerelease extension;
-          # Azure DevOps rejects changing a contribution's task ID across versions.
-          TaskID: '2817ac39-2411-4668-be26-14530f8dbade'
+          # Unique task ID for the hyperv-prerelease extension; must stay stable across versions.
+          TaskID: 'a7e3c1f9-4b26-4d80-9f31-6c2e8b7a1d54'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'
           ExtensionID: 'hyperv'

@@ -31,7 +31,7 @@ stages:
           VsixFileSuffix: 'azurepipelines_preview'
           DropSuffix: 'Preview'
           ExtensionVisibility: 'public'
-          TaskNameSuffix: '-preview'
+          TaskNameSuffix: 'Preview'
           TaskFriendlyNameSuffix: ' (Preview)'
           TaskID: '3b1f2c6d-7a94-4e2b-9c15-2f8e6a0d4b7c'
         Public_AzureDevOps:

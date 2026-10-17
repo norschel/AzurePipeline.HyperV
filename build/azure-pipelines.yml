@@ -33,15 +33,20 @@ stages:
           ExtensionVisibility: 'private'
           TaskNameSuffix: 'Dev'
           TaskFriendlyNameSuffix: ' (Dev)'
-        Preview_AzureDevOps:
-          ExtensionName: 'Hyper-V (Private Preview)'
-          ExtensionID: 'hyperv-preview'
+          # Brand-new dev extension: a unique task ID that must stay stable across versions.
+          TaskID: 'd5b1f3a7-9c62-4e18-a0d4-6f2b8c7e1a95'
+        Prerelease_AzureDevOps:
+          ExtensionName: 'Hyper-V (Prerelease)'
+          ExtensionID: 'hyperv-prerelease'
           ExtensionCategory: 'Azure Pipelines'
-          VsixFileSuffix: 'azurepipelines_preview'
-          DropSuffix: 'Preview'
+          VsixFileSuffix: 'azurepipelines_prerelease'
+          DropSuffix: 'Prerelease'
           ExtensionVisibility: 'public'
-          TaskNameSuffix: 'Preview'
-          TaskFriendlyNameSuffix: ' (Preview)'
+          TaskNameSuffix: 'Prerelease'
+          TaskFriendlyNameSuffix: ' (Prerelease)'
+          # Must match the task ID already published for the hyperv-prerelease extension;
+          # Azure DevOps rejects changing a contribution's task ID across versions.
+          TaskID: '2817ac39-2411-4668-be26-14530f8dbade'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'
           ExtensionID: 'hyperv'
@@ -51,6 +56,7 @@ stages:
           ExtensionVisibility: 'public'
           TaskNameSuffix: ''
           TaskFriendlyNameSuffix: ''
+          TaskID: ''
 
     steps:      
       - powershell: |
@@ -85,6 +91,7 @@ stages:
 
           $task.name = "$($task.name)$(TaskNameSuffix)"
           $task.friendlyName = "$($task.friendlyName)$(TaskFriendlyNameSuffix)"
+          if ('$(TaskID)') { $task.id = '$(TaskID)' }
 
           # task.json only supports a 3-part version (Major.Minor.Patch)
           $versionParts = '$(Build.BuildNumber)'.Split('.')
@@ -177,14 +184,14 @@ stages:
           connectionNamePAT: '$(marketplaceServiceConnection)'
           vsixFile: '$(Pipeline.Workspace)/Extension-Dev/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_dev.vsix'
 
-- stage: PublishPreview
-  displayName: 'Publish private preview'
+- stage: PublishPrerelease
+  displayName: 'Publish prerelease'
   dependsOn: Build
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
-  # Deployment job bound to an environment so the preview publish waits for a review/approval.
-  - deployment: PublishPreview
-    environment: 'HyperV-Preview-Oschel'
+  # Deployment job bound to an environment so the prerelease publish waits for a review/approval.
+  - deployment: PublishPrerelease
+    environment: 'HyperV-Prerelease-Oschel'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -192,11 +199,11 @@ stages:
         deploy:
           steps:
             - download: current
-              artifact: Extension-Preview
+              artifact: Extension-Prerelease
               patterns: '**/*.vsix'
 
             - task: azdo-marketplace@6
-              name: showPreview
+              name: showPrerelease
               displayName: 'Resolve published extension metadata'
               continueOnError: true
               inputs:
@@ -204,26 +211,26 @@ stages:
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 publisherId: '$(PublisherID)'
-                extensionId: 'hyperv-private-preview'
+                extensionId: 'hyperv-prerelease'
 
             - task: azdo-marketplace@6
-              name: publishPreview
-              displayName: 'Publish private preview to Marketplace'
+              name: publishPrerelease
+              displayName: 'Publish prerelease to Marketplace'
               inputs:
                 operation: publish
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 use: vsix
-                vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_prerelease.vsix'
                 noWaitValidation: true
 
             - task: azdo-marketplace@6
-              displayName: 'Validate private preview'
+              displayName: 'Validate prerelease'
               inputs:
                 operation: waitForValidation
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
-                vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_prerelease.vsix'
 
             - task: GitHubRelease@1
               displayName: 'Create GitHub pre-release'
@@ -238,11 +245,11 @@ stages:
                 isPreRelease: true
                 isDraft: false
                 addChangeLog: true
-                assets: '$(Pipeline.Workspace)/Extension-Preview/*.vsix'
+                assets: '$(Pipeline.Workspace)/Extension-Prerelease/*.vsix'
 
 - stage: PublishPublic
   displayName: 'Publish public'
-  dependsOn: PublishPreview
+  dependsOn: PublishPrerelease
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment: PublishProduction
@@ -293,7 +300,7 @@ stages:
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 vsixFile: '$(Pipeline.Workspace)/Extension-AzD/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines.vsix'
 
-            # Same release that was created as a pre-release in PublishPreview is now promoted to a regular production release.
+            # Same release that was created as a pre-release in PublishPrerelease is now promoted to a regular production release.
             - task: GitHubRelease@1
               displayName: 'Promote GitHub release to production'
               inputs:

@@ -33,7 +33,9 @@ stages:
           ExtensionVisibility: 'public'
           TaskNameSuffix: 'Preview'
           TaskFriendlyNameSuffix: ' (Preview)'
-          TaskID: '3b1f2c6d-7a94-4e2b-9c15-2f8e6a0d4b7c'
+          # Must match the task ID already published for the hyperv-preview extension;
+          # Azure DevOps rejects changing a contribution's task ID across versions.
+          TaskID: '2817ac39-2411-4668-be26-14530f8dbade'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'
           ExtensionID: 'hyperv'

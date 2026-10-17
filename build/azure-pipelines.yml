@@ -24,8 +24,17 @@ stages:
     strategy:
       maxParallel: 4
       matrix:
+        Dev_AzureDevOps:
+          ExtensionName: 'Hyper-V (Dev)'
+          ExtensionID: 'hyperv-dev'
+          ExtensionCategory: 'Azure Pipelines'
+          VsixFileSuffix: 'azurepipelines_dev'
+          DropSuffix: 'Dev'
+          ExtensionVisibility: 'private'
+          TaskNameSuffix: 'Dev'
+          TaskFriendlyNameSuffix: ' (Dev)'
         Preview_AzureDevOps:
-          ExtensionName: 'Hyper-V (Private Preview 2)'
+          ExtensionName: 'Hyper-V (Private Preview)'
           ExtensionID: 'hyperv-preview'
           ExtensionCategory: 'Azure Pipelines'
           VsixFileSuffix: 'azurepipelines_preview'
@@ -33,9 +42,6 @@ stages:
           ExtensionVisibility: 'public'
           TaskNameSuffix: 'Preview'
           TaskFriendlyNameSuffix: ' (Preview)'
-          # Must match the task ID already published for the hyperv-preview extension;
-          # Azure DevOps rejects changing a contribution's task ID across versions.
-          TaskID: '2817ac39-2411-4668-be26-14530f8dbade'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'
           ExtensionID: 'hyperv'
@@ -45,7 +51,6 @@ stages:
           ExtensionVisibility: 'public'
           TaskNameSuffix: ''
           TaskFriendlyNameSuffix: ''
-          TaskID: ''
 
     steps:      
       - powershell: |
@@ -80,7 +85,6 @@ stages:
 
           $task.name = "$($task.name)$(TaskNameSuffix)"
           $task.friendlyName = "$($task.friendlyName)$(TaskFriendlyNameSuffix)"
-          if ('$(TaskID)') { $task.id = '$(TaskID)' }
 
           # task.json only supports a 3-part version (Major.Minor.Patch)
           $versionParts = '$(Build.BuildNumber)'.Split('.')
@@ -128,23 +132,23 @@ stages:
           artifact: Extension-$(DropSuffix)
           targetPath: '$(build.artifactstagingdirectory)'
 
-- stage: PublishPreview
-  displayName: 'Publish private preview'
+- stage: PublishDev
+  displayName: 'Publish dev'
   dependsOn: Build
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
-  - job: PublishPreview
+  - job: PublishDev
     pool:
       vmImage: 'ubuntu-latest'
     steps:
       - checkout: none
 
       - download: current
-        artifact: Extension-Preview
+        artifact: Extension-Dev
         patterns: '**/*.vsix'
 
       - task: azdo-marketplace@6
-        name: showPreview
+        name: showDev
         displayName: 'Resolve published extension metadata'
         continueOnError: true
         inputs:
@@ -152,26 +156,89 @@ stages:
           connectionType: PAT
           connectionNamePAT: '$(marketplaceServiceConnection)'
           publisherId: '$(PublisherID)'
-          extensionId: 'hyperv-private-preview'
+          extensionId: 'hyperv-dev'
 
       - task: azdo-marketplace@6
-        name: publishPreview
-        displayName: 'Publish private preview to Marketplace'
+        name: publishDev
+        displayName: 'Publish dev to Marketplace'
         inputs:
           operation: publish
           connectionType: PAT
           connectionNamePAT: '$(marketplaceServiceConnection)'
           use: vsix
-          vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+          vsixFile: '$(Pipeline.Workspace)/Extension-Dev/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_dev.vsix'
           noWaitValidation: true
 
       - task: azdo-marketplace@6
-        displayName: 'Validate private preview'
+        displayName: 'Validate dev'
         inputs:
           operation: waitForValidation
           connectionType: PAT
           connectionNamePAT: '$(marketplaceServiceConnection)'
-          vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+          vsixFile: '$(Pipeline.Workspace)/Extension-Dev/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_dev.vsix'
+
+- stage: PublishPreview
+  displayName: 'Publish private preview'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:
+  # Deployment job bound to an environment so the preview publish waits for a review/approval.
+  - deployment: PublishPreview
+    environment: 'HyperV-Preview-Oschel'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: current
+              artifact: Extension-Preview
+              patterns: '**/*.vsix'
+
+            - task: azdo-marketplace@6
+              name: showPreview
+              displayName: 'Resolve published extension metadata'
+              continueOnError: true
+              inputs:
+                operation: show
+                connectionType: PAT
+                connectionNamePAT: '$(marketplaceServiceConnection)'
+                publisherId: '$(PublisherID)'
+                extensionId: 'hyperv-private-preview'
+
+            - task: azdo-marketplace@6
+              name: publishPreview
+              displayName: 'Publish private preview to Marketplace'
+              inputs:
+                operation: publish
+                connectionType: PAT
+                connectionNamePAT: '$(marketplaceServiceConnection)'
+                use: vsix
+                vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+                noWaitValidation: true
+
+            - task: azdo-marketplace@6
+              displayName: 'Validate private preview'
+              inputs:
+                operation: waitForValidation
+                connectionType: PAT
+                connectionNamePAT: '$(marketplaceServiceConnection)'
+                vsixFile: '$(Pipeline.Workspace)/Extension-Preview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_preview.vsix'
+
+            - task: GitHubRelease@1
+              displayName: 'Create GitHub pre-release'
+              inputs:
+                gitHubConnection: 'GitHub'
+                repositoryName: '$(Build.Repository.Name)'
+                action: create
+                target: '$(Build.SourceVersion)'
+                tagSource: userSpecifiedTag
+                tag: 'v$(Build.BuildNumber)'
+                title: 'v$(Build.BuildNumber)'
+                isPreRelease: true
+                isDraft: false
+                addChangeLog: true
+                assets: '$(Pipeline.Workspace)/Extension-Preview/*.vsix'
 
 - stage: PublishPublic
   displayName: 'Publish public'
@@ -225,6 +292,19 @@ stages:
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 vsixFile: '$(Pipeline.Workspace)/Extension-AzD/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines.vsix'
+
+            # Same release that was created as a pre-release in PublishPreview is now promoted to a regular production release.
+            - task: GitHubRelease@1
+              displayName: 'Promote GitHub release to production'
+              inputs:
+                gitHubConnection: 'GitHub'
+                repositoryName: '$(Build.Repository.Name)'
+                action: edit
+                target: '$(Build.SourceVersion)'
+                tag: 'v$(Build.BuildNumber)'
+                title: 'v$(Build.BuildNumber)'
+                isPreRelease: false
+                isDraft: false
 
             - pwsh: |
                 $ErrorActionPreference = 'Stop'

@@ -92,20 +92,11 @@ stages:
           write-host "Patched task.json:"
           Get-Content -Path $taskPath -Raw
 
-          $manifestPath = "$(Build.SourcesDirectory)\src\HyperVServer\vss-extension.json"
-          write-host "Patch vss-extension.json at $manifestPath"
-          $manifest = Get-Content -Path $manifestPath -Raw | ConvertFrom-Json
-
-          # Contribution name must match the patched task name
-          foreach ($contribution in $manifest.contributions) {
-            if ($contribution.properties.name) {
-              $contribution.properties.name = "$($contribution.properties.name)$(TaskNameSuffix)"
-            }
-          }
-
-          [System.IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 100), $utf8NoBom)
-          write-host "Patched vss-extension.json:"
-          Get-Content -Path $manifestPath -Raw
+          # NOTE: For a ms.vss-distributed-task.task contribution, properties.name is the
+          # relative path to the folder that contains task.json (here: "HyperVServer"),
+          # NOT the task's display name. It must not be suffixed or tfx fails with
+          # "task.json file was not found in contribution ...". The variant task stays
+          # unique via the task.json patch above (name/id/friendlyName).
         displayName: 'Patch task.json variant metadata'
 
         #- task: ToreGroneng.ToreGroneng-PSScriptAnalyzer-Task.PSScriptAnalyzer-Task.PowerShell Script Analyzer@1

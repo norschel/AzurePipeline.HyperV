@@ -186,7 +186,7 @@ stages:
 
 - stage: PublishPrerelease
   displayName: 'Publish prerelease'
-  dependsOn: Build
+  dependsOn: PublishDev
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   # Deployment job bound to an environment so the prerelease publish waits for a review/approval.

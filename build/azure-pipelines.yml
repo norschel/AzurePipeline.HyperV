@@ -220,7 +220,7 @@ stages:
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 use: vsix
-                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_prerelease.vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_releasepreview.vsix'
                 noWaitValidation: true
 
             - task: azdo-marketplace@6
@@ -229,7 +229,7 @@ stages:
                 operation: waitForValidation
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
-                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_prerelease.vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_releasepreview.vsix'
 
             - task: GitHubRelease@1
               displayName: 'Create GitHub pre-release'
@@ -244,7 +244,7 @@ stages:
                 isPreRelease: true
                 isDraft: false
                 addChangeLog: true
-                assets: '$(Pipeline.Workspace)/Extension-Prerelease/*.vsix'
+                assets: '$(Pipeline.Workspace)/Extension-ReleasePreview/*.vsix'
 
 - stage: PublishPublic
   displayName: 'Publish public'

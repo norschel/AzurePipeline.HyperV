@@ -184,7 +184,7 @@ stages:
           vsixFile: '$(Pipeline.Workspace)/Extension-Dev/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_dev.vsix'
 
 - stage: PublishPrerelease
-  displayName: 'Publish prerelease'
+  displayName: 'Publish release preview'
   dependsOn: PublishDev
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
@@ -210,26 +210,26 @@ stages:
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 publisherId: '$(PublisherID)'
-                extensionId: 'hyperv-prerelease'
+                extensionId: 'hyperv-releasepreview'
 
             - task: azdo-marketplace@6
               name: publishPrerelease
-              displayName: 'Publish prerelease to Marketplace'
+              displayName: 'Publish release preview to Marketplace'
               inputs:
                 operation: publish
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
                 use: vsix
-                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_releasepreview.vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-ReleasePreview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_releasepreview.vsix'
                 noWaitValidation: true
 
             - task: azdo-marketplace@6
-              displayName: 'Validate prerelease'
+              displayName: 'Validate release preview'
               inputs:
                 operation: waitForValidation
                 connectionType: PAT
                 connectionNamePAT: '$(marketplaceServiceConnection)'
-                vsixFile: '$(Pipeline.Workspace)/Extension-Prerelease/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_releasepreview.vsix'
+                vsixFile: '$(Pipeline.Workspace)/Extension-ReleasePreview/Orschel.HyperV_$(majorversion).$(minorversion)_azurepipelines_releasepreview.vsix'
 
             - task: GitHubRelease@1
               displayName: 'Create GitHub pre-release'

@@ -37,14 +37,14 @@ stages:
           TaskID: 'd5b1f3a7-9c62-4e18-a0d4-6f2b8c7e1a95'
         Prerelease_AzureDevOps:
           ExtensionName: 'Hyper-V (Prerelease)'
-          ExtensionID: 'hyperv-prerelease'
+          ExtensionID: 'hyperv-releasepreview'
           ExtensionCategory: 'Azure Pipelines'
-          VsixFileSuffix: 'azurepipelines_prerelease'
-          DropSuffix: 'Prerelease'
+          VsixFileSuffix: 'azurepipelines_releasepreview'
+          DropSuffix: 'ReleasePreview'
           ExtensionVisibility: 'public'
-          TaskNameSuffix: 'Prerelease'
-          TaskFriendlyNameSuffix: ' (Prerelease)'
-          # Unique task ID for the hyperv-prerelease extension; must stay stable across versions.
+          TaskNameSuffix: 'ReleasePreview'
+          TaskFriendlyNameSuffix: ' (Release Preview)'
+          # Unique task ID for the hyperv-releasepreview extension; must stay stable across versions.
           TaskID: 'a7e3c1f9-4b26-4d80-9f31-6c2e8b7a1d54'
         Public_AzureDevOps:
           ExtensionName: 'Hyper-V'

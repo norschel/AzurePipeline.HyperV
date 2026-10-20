@@ -334,3 +334,4 @@ ASALocalRun/
 .DS_Store
 src/HyperVServer/dist/
 *.js
+*.tsbuildinfo

@@ -115,8 +115,9 @@ export class PowerShellSSHClient {
             resolve(result);
           })
           .on('data', (data: Buffer | string) => {
-            result += data.toString().trim();
-            console.log(data.toString().trim());
+            const text = data.toString();
+            result += text;
+            console.log(text.trimEnd());
           })
           .stderr.on('data', (data: Buffer | string) => {
             console.log('(SSH-Error) ' + data.toString().trim());
